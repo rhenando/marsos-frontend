@@ -2,12 +2,14 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
+type AdminStats = {
+  users: number;
+  products: number;
+  orders: number;
+};
+
 export function useAdminStats() {
-  const [stats, setStats] = useState<{
-    users: number;
-    products: number;
-    orders: number;
-  } | null>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

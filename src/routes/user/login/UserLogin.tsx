@@ -1,4 +1,6 @@
-import { useState, useEffect, ChangeEvent } from "react";
+// src/routes/user/login/UserLogin.tsx
+import { useState, useEffect } from "react";
+import type { ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -23,7 +25,6 @@ type TabType = "email" | "phone";
 type Stage = "phone" | "otp";
 
 export default function AuthPage(): React.ReactElement | null {
-  // ✅ useTranslation without namespace (since "login" is nested under translation)
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const locale = i18n.language || "en";
@@ -45,7 +46,7 @@ export default function AuthPage(): React.ReactElement | null {
   const [stage, setStage] = useState<Stage>("phone");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  // const [userRole, setUserRole] = useState<string | null>(null); // unused variable removed
 
   const fullPhone = `${countryCode}${phone}`;
 
@@ -143,7 +144,6 @@ export default function AuthPage(): React.ReactElement | null {
 
     setLoading(true);
     try {
-      // ⚙️ Call your own backend route (Node/Express)
       const res = await fetch(
         `${
           import.meta.env.VITE_API_URL
@@ -160,7 +160,6 @@ export default function AuthPage(): React.ReactElement | null {
             ? "لا يوجد سجل لهذا الرقم، يتم تحويلك إلى صفحة التسجيل."
             : "We don't have a record for this number, redirecting to registration page."
         );
-
         navigate(
           `/${locale}/user-choices?phone=${encodeURIComponent(fullPhone)}`
         );
@@ -178,7 +177,6 @@ export default function AuthPage(): React.ReactElement | null {
 
       // ✅ Verified user
       setIsNewUser(false);
-      setUserRole(json.role || null);
 
       const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone });
       if (error) throw error;
@@ -263,7 +261,10 @@ export default function AuthPage(): React.ReactElement | null {
 
             <Card className='bg-white shadow-lg rounded-lg'>
               <CardContent className='px-6 py-8 space-y-6'>
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(v) => setActiveTab(v as TabType)}
+                >
                   <TabsList className='grid w-full grid-cols-2'>
                     <TabsTrigger value='email'>
                       <Mail className='w-4 h-4 mr-1' /> Email

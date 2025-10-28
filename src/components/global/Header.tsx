@@ -1,4 +1,3 @@
-// frontend/src/components/global/Header.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -21,6 +20,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/overlay/dropdown-menu";
 
+// Lazy-load ProductSearch to optimize performance
 const ProductSearch = React.lazy(
   () => import("@/components/global/productSearch/ProductSearch")
 );
@@ -30,10 +30,14 @@ export default function Header() {
   const navigate = useNavigate();
   const { cartCount } = useCartStore();
   const { user, logout } = useAuthStore();
-  const role = user?.role ?? null;
-  const displayName = user?.email || user?.phone || t("header.signIn");
 
-  // --- rest of your logic unchanged ---
+  // Safely access user data with fallback
+  const role = user?.role ?? null;
+  const displayName = user?.email || (user as any)?.phone || t("header.signIn");
+
+  // ─────────────────────────────
+  // 🌍 Geolocation logic
+  // ─────────────────────────────
   const [coords, setCoords] = useState<{ lat: string; lng: string } | null>(
     null
   );
@@ -50,6 +54,7 @@ export default function Header() {
   useEffect(() => {
     if (coords || locationName) return;
     if (!navigator.geolocation) return setLocError("Geolocation not supported");
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -76,6 +81,7 @@ export default function Header() {
           city && region
             ? `${city}, ${region}`
             : city || region || data.display_name;
+
         if (name) {
           setLocationName(name);
           localStorage.setItem("locationName", name);
@@ -93,14 +99,15 @@ export default function Header() {
   }, [locationName, locError]);
 
   const handleLogout = () => logout(navigate, i18n, role);
-
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // ✅ Render stays the same (no props needed)
+  // ─────────────────────────────
+  // 🧩 Render Header
+  // ─────────────────────────────
   return (
     <header className='w-full bg-white/90 backdrop-blur-md shadow-sm z-50'>
       <div className='max-w-full mx-auto flex items-center justify-between px-4 md:px-6 h-26'>
-        {/* Left: Logo */}
+        {/* ── Left: Logo ── */}
         <div className='flex items-center'>
           <Link to='/' className='flex-shrink-0' aria-label='Home'>
             <img
@@ -110,6 +117,8 @@ export default function Header() {
               height={48}
             />
           </Link>
+
+          {/* Mobile Search */}
           <div className='md:hidden ml-1 flex items-center'>
             <React.Suspense
               fallback={
@@ -123,7 +132,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Center: Search */}
+        {/* ── Center: Search (Desktop) ── */}
         <div className='hidden md:flex flex-1 mx-6'>
           <React.Suspense
             fallback={
@@ -136,7 +145,7 @@ export default function Header() {
           </React.Suspense>
         </div>
 
-        {/* Right Section */}
+        {/* ── Right Section ── */}
         <div className='flex items-center'>
           {/* Mobile Menu */}
           <div className='md:hidden'>

@@ -79,8 +79,14 @@ const ProductDetailsPage: React.FC = () => {
           .single();
 
         if (error) throw error;
+
+        // ✅ Use proper image URL resolution here
+        const fullMainImage = data.mainimageurl?.startsWith("http")
+          ? data.mainimageurl
+          : `${SUPABASE_URL}/storage/v1/object/public/product-images/${data.mainimageurl}`;
+
         setProduct(data);
-        setSelectedImage(data.mainimageurl);
+        setSelectedImage(fullMainImage);
       } catch (err: any) {
         console.error("❌ Failed to load product:", err);
         toast.error(

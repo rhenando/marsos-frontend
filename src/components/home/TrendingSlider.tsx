@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+
+// ✅ Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -17,7 +19,7 @@ interface Category {
 interface TrendingSliderProps {
   categories?: Category[];
   isRTL?: boolean;
-  locale?: string;
+  locale?: "en" | "ar"; // ✅ Narrow type
 }
 
 // -------------------------------
@@ -70,11 +72,14 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({
             slug = `category-${i}`;
           }
 
-          // ✅ Resolve localized label
+          // ✅ Resolve localized label safely
           const label =
             typeof cat.label === "string"
               ? cat.label
-              : cat.label?.[locale] || cat.label?.en || cat.label?.ar || "";
+              : cat.label?.[locale as "en" | "ar"] ||
+                cat.label?.en ||
+                cat.label?.ar ||
+                "";
 
           return (
             <SwiperSlide key={`${slug}-${i}`}>
@@ -88,8 +93,7 @@ const TrendingSlider: React.FC<TrendingSliderProps> = ({
                       className='w-full h-full object-cover'
                       loading='lazy'
                       onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "/dummy1.jpg";
+                        (e.target as HTMLImageElement).src = "/dummy1.jpg";
                       }}
                     />
                   </div>

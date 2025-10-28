@@ -80,13 +80,13 @@ const ProductDetailsPage: React.FC = () => {
 
         if (error) throw error;
 
-        // ✅ Use proper image URL resolution here
+        // ✅ Fix: build full image path safely
         const fullMainImage = data.mainimageurl?.startsWith("http")
           ? data.mainimageurl
           : `${SUPABASE_URL}/storage/v1/object/public/product-images/${data.mainimageurl}`;
 
         setProduct(data);
-        setSelectedImage(fullMainImage);
+        setSelectedImage(fullMainImage || null);
       } catch (err: any) {
         console.error("❌ Failed to load product:", err);
         toast.error(
@@ -113,7 +113,6 @@ const ProductDetailsPage: React.FC = () => {
         .flatMap((r) => r.locations || [])
         .map((l) => l.location?.trim())
         .filter((loc): loc is string => !!loc && loc.length > 0) || [];
-    // remove duplicates
     return [...new Set(allLocs)];
   }, [priceRanges]);
 
@@ -197,10 +196,6 @@ const ProductDetailsPage: React.FC = () => {
       ? product.category_ar || product.category_en
       : product.category_en || product.category_ar;
 
-  const mainImage = product.mainimageurl?.startsWith("http")
-    ? product.mainimageurl
-    : `${SUPABASE_URL}/storage/v1/object/public/product-images/${product.mainimageurl}`;
-
   // ─────────────────────────────────────────────
   // 🛒 Handlers
   // ─────────────────────────────────────────────
@@ -254,7 +249,8 @@ const ProductDetailsPage: React.FC = () => {
                 (url, i) => (
                   <button
                     key={i}
-                    onClick={() => setSelectedImage(url)}
+                    // ✅ Fix TS2345: ensure value is not undefined
+                    onClick={() => setSelectedImage(url || null)}
                     className={`border rounded overflow-hidden w-[100px] h-[100px] ${
                       selectedImage === url ? "ring-2 ring-[#2c6449]" : ""
                     }`}
@@ -283,7 +279,6 @@ const ProductDetailsPage: React.FC = () => {
             </span>
           </p>
 
-          {/* Sizes, Colors, and Delivery Location - in one row */}
           {(product.sizes?.length ||
             product.colors?.length ||
             availableLocations.length > 0) && (
@@ -292,7 +287,9 @@ const ProductDetailsPage: React.FC = () => {
               {product.sizes?.length ? (
                 <div className='flex flex-col'>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    {t("product_details_page.sizes", { defaultValue: "Size" })}
+                    {t("product_details_page.sizes", {
+                      defaultValue: "Size",
+                    })}
                   </label>
                   <Select onValueChange={setSelectedSize} value={selectedSize}>
                     <SelectTrigger className='w-40'>
@@ -378,7 +375,9 @@ const ProductDetailsPage: React.FC = () => {
           {/* Quantity */}
           <div className='mt-6'>
             <label className='block text-sm font-medium text-gray-700 mb-1'>
-              {t("product_details_page.quantity", { defaultValue: "Quantity" })}
+              {t("product_details_page.quantity", {
+                defaultValue: "Quantity",
+              })}
             </label>
             <div className='flex items-center gap-2'>
               <Button

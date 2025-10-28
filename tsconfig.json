@@ -1,12 +1,8 @@
 {
   "files": [],
   "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
     /* ===== Base Path Aliases ===== */
@@ -37,6 +33,9 @@
     /* ===== Quality / Stability ===== */
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    /* ===== Custom Type Declarations ===== */
+    "typeRoots": ["./src/types", "./node_modules/@types"]
   }
 }

@@ -4,13 +4,30 @@ import AdminLayout from "@/routes/admin/dashboard/AdminLayout";
 import AdminStatCard from "@/components/admin/AdminStatCard";
 import { api } from "@/lib/api";
 
+// ✅ Define the shape of data you expect from API
+type AdminStats = {
+  users: number;
+  products: number;
+  orders: number;
+};
+
 export default function Overview() {
-  const [stats, setStats] = useState({ users: 0, products: 0, orders: 0 });
+  // ✅ Explicitly define state type
+  const [stats, setStats] = useState<AdminStats>({
+    users: 0,
+    products: 0,
+    orders: 0,
+  });
 
   useEffect(() => {
     (async () => {
-      const s = await api.admin.getStats();
-      setStats(s);
+      try {
+        // ✅ Explicit type assertion for API response
+        const s = (await api.admin.getStats()) as AdminStats;
+        setStats(s);
+      } catch (err) {
+        console.error("❌ Failed to fetch admin stats:", err);
+      }
     })();
   }, []);
 

@@ -24,7 +24,7 @@ const ShinyButton: React.FC<ShinyButtonProps> = ({
   onClick,
   colorClass,
 }) => {
-  const controls: AnimationControls = useAnimation();
+  const controls = useAnimation(); // ✅ Framer Motion infers type automatically
 
   useEffect(() => {
     controls.start({
@@ -107,7 +107,7 @@ const HeroCategoriesBar: React.FC<HeroCategoriesBarProps> = ({
   const navigate = useNavigate();
   const isLoading = !categoryLabels || categoryLabels.length === 0;
 
-  // auto-scroll carousel
+  // 🔄 Auto-scroll carousel
   useEffect(() => {
     const ref = carouselContentRef.current;
     if (!ref) return;

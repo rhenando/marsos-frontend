@@ -20,10 +20,12 @@ export default function Orders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const data = await api.admin.listOrders();
+        // ✅ Explicit type assertion to tell TypeScript what this data is
+        const data = (await api.admin.listOrders()) as Order[];
         setOrders(data);
       } catch (err: any) {
-        setError(err.message);
+        console.error("❌ Failed to load orders:", err);
+        setError(err.message || "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -36,6 +38,7 @@ export default function Orders() {
       <div className='space-y-6'>
         <h1 className='text-2xl font-semibold text-gray-800'>Orders</h1>
 
+        {/* 🌀 Loading Skeleton */}
         {loading && (
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             {[...Array(4)].map((_, i) => (
@@ -44,12 +47,14 @@ export default function Orders() {
           </div>
         )}
 
+        {/* ⚠️ Error State */}
         {error && (
           <div className='text-center text-red-500 py-6'>
             Failed to load orders: {error}
           </div>
         )}
 
+        {/* 📦 Orders Table */}
         {!loading && !error && (
           <div className='overflow-x-auto border rounded-lg bg-white shadow-sm'>
             <table className='w-full text-sm text-left border-collapse'>

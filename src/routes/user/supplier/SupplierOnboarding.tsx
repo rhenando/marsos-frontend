@@ -351,7 +351,6 @@ export default function SupplierOnboarding() {
           </div>
 
           <div className='mt-6'>
-            {/* STEP 0 — NUN */}
             {step === 0 && (
               <div className='space-y-4'>
                 <label className='block text-sm font-medium text-gray-700'>
@@ -378,7 +377,6 @@ export default function SupplierOnboarding() {
               </div>
             )}
 
-            {/* STEP 1 — Date Verify */}
             {step === 1 && (
               <div className='bg-white border rounded-lg shadow-sm p-5 space-y-6'>
                 <h3 className='text-lg font-semibold text-[#2c6449]'>
@@ -436,17 +434,44 @@ export default function SupplierOnboarding() {
               </div>
             )}
 
-            {/* STEP 2 — Full Form */}
             {step === 2 && (
               <form onSubmit={submitOnboarding} className='space-y-6'>
                 <div className='border rounded-lg p-4'>
                   <h3 className='text-[#2c6449] font-semibold mb-3'>
                     {t("supplier.legends.companyDetails")}
                   </h3>
-
-                  {/* --- Company Details Fields --- */}
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    {/* CR FILE (SAFE) */}
+                    <input
+                      placeholder={t("supplier.placeholders.companyName")}
+                      value={form.companyName}
+                      onChange={(e) =>
+                        handleChange("companyName", e.target.value)
+                      }
+                      className='p-2 border rounded-md'
+                      maxLength={100}
+                      required
+                    />
+                    <div>
+                      <input
+                        type='email'
+                        placeholder={t("supplier.placeholders.companyEmail")}
+                        value={form.companyEmail}
+                        onChange={(e) =>
+                          handleChange("companyEmail", e.target.value)
+                        }
+                        className={`p-2 border rounded-md w-full ${
+                          emailErrors.companyEmail ? "border-red-500" : ""
+                        }`}
+                        required
+                      />
+                      {emailErrors.companyEmail && (
+                        <p className='text-xs text-red-600 mt-1'>
+                          {emailErrors.companyEmail}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Commercial Registration Upload */}
                     <div>
                       <label className='block text-sm font-medium text-gray-700'>
                         {t("supplier.labels.commercialReg")} *
@@ -471,6 +496,7 @@ export default function SupplierOnboarding() {
                         className='mt-2 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#2c6449] file:text-white hover:file:bg-[#24513b]'
                         required
                       />
+
                       {form.crFileUrl && form.crFile ? (
                         <div className='mt-3 text-sm'>
                           {form.crFile.type.startsWith("image/") ? (
@@ -493,7 +519,7 @@ export default function SupplierOnboarding() {
                       ) : null}
                     </div>
 
-                    {/* VAT FILE (SAFE) */}
+                    {/* VAT Registration Upload */}
                     <div>
                       <label className='block text-sm font-medium text-gray-700'>
                         {t("supplier.labels.vatRegNumber")} *
@@ -518,6 +544,7 @@ export default function SupplierOnboarding() {
                         className='mt-2 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#2c6449] file:text-white hover:file:bg-[#24513b]'
                         required
                       />
+
                       {form.vatFileUrl && form.vatFile ? (
                         <div className='mt-3 text-sm'>
                           {form.vatFile.type.startsWith("image/") ? (
@@ -539,6 +566,292 @@ export default function SupplierOnboarding() {
                         </div>
                       ) : null}
                     </div>
+
+                    <DateDropdownPicker
+                      type='gregorian'
+                      locale={locale}
+                      label={t("supplier.labels.crIssueG")}
+                      required
+                      onChange={({ formatted }) =>
+                        handleChange("crIssueG", formatted)
+                      }
+                    />
+                    <DateDropdownPicker
+                      type='hijri'
+                      locale={locale}
+                      label={t("supplier.labels.crIssueH")}
+                      required
+                      onChange={({ formatted }) =>
+                        handleChange("crIssueH", formatted)
+                      }
+                    />
+                    <DateDropdownPicker
+                      type='gregorian'
+                      locale={locale}
+                      label={t("supplier.labels.crConfirmG")}
+                      required
+                      onChange={({ formatted }) =>
+                        handleChange("crConfirmG", formatted)
+                      }
+                    />
+                    <DateDropdownPicker
+                      type='hijri'
+                      locale={locale}
+                      label={t("supplier.labels.crConfirmH")}
+                      required
+                      onChange={({ formatted }) =>
+                        handleChange("crConfirmH", formatted)
+                      }
+                    />
+                    <div className='flex'>
+                      <select
+                        value={form.companyPhoneCode}
+                        onChange={(e) =>
+                          handleChange("companyPhoneCode", e.target.value)
+                        }
+                        className='p-2 border rounded-l-md bg-gray-50'
+                      >
+                        {PHONE_CODES.map((code) => (
+                          <option key={code} value={code}>
+                            {code}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type='tel'
+                        value={form.companyPhone}
+                        onChange={(e) =>
+                          handleChange(
+                            "companyPhone",
+                            e.target.value.replace(/\D/g, "")
+                          )
+                        }
+                        placeholder={t("supplier.placeholders.companyPhone")}
+                        className='flex-1 p-2 border rounded-r-md'
+                        maxLength={15}
+                        required
+                      />
+                    </div>
+                    <input
+                      placeholder={t("supplier.placeholders.city")}
+                      value={form.city}
+                      onChange={(e) => handleChange("city", e.target.value)}
+                      className='p-2 border rounded-md'
+                      maxLength={50}
+                      required
+                    />
+                    <input
+                      placeholder={t("supplier.placeholders.zipCode")}
+                      value={form.zipCode}
+                      onChange={(e) => handleChange("zipCode", e.target.value)}
+                      className='p-2 border rounded-md'
+                      maxLength={10}
+                      required
+                    />
+                    <input
+                      placeholder={t("supplier.placeholders.country")}
+                      value={form.country}
+                      onChange={(e) => handleChange("country", e.target.value)}
+                      className='p-2 border rounded-md'
+                      maxLength={50}
+                      required
+                    />
+                    <textarea
+                      rows={3}
+                      placeholder={t("supplier.placeholders.address")}
+                      value={form.address}
+                      onChange={(e) => handleChange("address", e.target.value)}
+                      className='p-2 border rounded-md md:col-span-2'
+                      maxLength={500}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className='border rounded-lg p-4'>
+                  <h3 className='text-[#2c6449] font-semibold mb-3'>
+                    {t("supplier.legends.authorizedPerson")}
+                  </h3>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <input
+                      placeholder={t("supplier.placeholders.authPersonName")}
+                      value={form.authPersonName}
+                      onChange={(e) =>
+                        handleChange("authPersonName", e.target.value)
+                      }
+                      className='p-2 border rounded-md'
+                      maxLength={100}
+                      required
+                    />
+                    <div>
+                      <input
+                        type='email'
+                        placeholder={t("supplier.placeholders.authPersonEmail")}
+                        value={form.authPersonEmail}
+                        onChange={(e) =>
+                          handleChange("authPersonEmail", e.target.value)
+                        }
+                        className={`p-2 border rounded-md w-full ${
+                          emailErrors.authPersonEmail ? "border-red-500" : ""
+                        }`}
+                        required
+                      />
+                      {emailErrors.authPersonEmail && (
+                        <p className='text-xs text-red-600 mt-1'>
+                          {emailErrors.authPersonEmail}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Enhanced Password Field */}
+                    <div className='md:col-span-2 bg-yellow-50 p-3 rounded-md'>
+                      <label className='block text-sm font-medium text-[#2c6449] mb-2'>
+                        {t("supplier.placeholders.authPassword")} * (Secure
+                        Password Required)
+                      </label>
+                      <div className='relative'>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          placeholder={t("supplier.placeholders.authPassword")}
+                          value={form.authPassword}
+                          onChange={(e) =>
+                            handleChange("authPassword", e.target.value)
+                          }
+                          className={`p-2 border rounded-md w-full pr-16 ${
+                            passwordErrors.length > 0
+                              ? "border-red-500"
+                              : form.authPassword && passwordErrors.length === 0
+                              ? "border-green-500"
+                              : ""
+                          }`}
+                          required
+                        />
+                        <button
+                          type='button'
+                          onClick={() => setShowPassword(!showPassword)}
+                          className='absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm hover:text-gray-700'
+                        >
+                          {showPassword ? "Hide" : "Show"}
+                        </button>
+                      </div>
+
+                      {/* Password Requirements */}
+                      <div className='mt-2 text-xs'>
+                        <p className='font-medium mb-1 text-[#2c6449]'>
+                          Password Requirements:
+                        </p>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-1'>
+                          <span
+                            className={`${
+                              form.authPassword.length >= 8
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            • At least 8 characters{" "}
+                            {form.authPassword.length >= 8 ? "✓" : "✗"}
+                          </span>
+                          <span
+                            className={`${
+                              /[A-Z]/.test(form.authPassword)
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            • One uppercase letter{" "}
+                            {/[A-Z]/.test(form.authPassword) ? "✓" : "✗"}
+                          </span>
+                          <span
+                            className={`${
+                              /[a-z]/.test(form.authPassword)
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            • One lowercase letter{" "}
+                            {/[a-z]/.test(form.authPassword) ? "✓" : "✗"}
+                          </span>
+                          <span
+                            className={`${
+                              /\d/.test(form.authPassword)
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            • One number{" "}
+                            {/\d/.test(form.authPassword) ? "✓" : "✗"}
+                          </span>
+                          <span
+                            className={`${
+                              /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                                form.authPassword
+                              )
+                                ? "text-green-600"
+                                : "text-red-600"
+                            } sm:col-span-2`}
+                          >
+                            • One special character{" "}
+                            {/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                              form.authPassword
+                            )
+                              ? "✓"
+                              : "✗"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className='flex'>
+                      <select
+                        value={form.authPhoneCode}
+                        onChange={(e) =>
+                          handleChange("authPhoneCode", e.target.value)
+                        }
+                        className='p-2 border rounded-l-md bg-gray-50'
+                      >
+                        {PHONE_CODES.map((code) => (
+                          <option key={code} value={code}>
+                            {code}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type='tel'
+                        value={form.authPersonMobile}
+                        onChange={(e) =>
+                          handleChange(
+                            "authPersonMobile",
+                            e.target.value.replace(/\D/g, "")
+                          )
+                        }
+                        placeholder={t(
+                          "supplier.placeholders.authPersonMobile"
+                        )}
+                        className='flex-1 p-2 border rounded-r-md'
+                        maxLength={15}
+                        required
+                      />
+                    </div>
+                    <input
+                      placeholder={t("supplier.placeholders.designation")}
+                      value={form.designation}
+                      onChange={(e) =>
+                        handleChange("designation", e.target.value)
+                      }
+                      className='p-2 border rounded-md'
+                      maxLength={50}
+                      required
+                    />
+                    <input
+                      placeholder={t("supplier.placeholders.personalIdNumber")}
+                      value={form.personalIdNumber}
+                      onChange={(e) =>
+                        handleChange("personalIdNumber", e.target.value)
+                      }
+                      className='p-2 border rounded-md'
+                      maxLength={20}
+                      required
+                    />
                   </div>
                 </div>
 

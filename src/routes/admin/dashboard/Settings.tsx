@@ -2,7 +2,7 @@
 
 import AdminLayout from "@/routes/admin/dashboard/AdminLayout";
 
-export default function Settings(): JSX.Element {
+export default function Settings() {
   return (
     <AdminLayout>
       <h2 className='text-xl font-semibold mb-4'>Settings</h2>

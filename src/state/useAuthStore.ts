@@ -3,6 +3,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase } from "@/lib/supabaseClient";
 
+/**
+ * ────────────────────────────────
+ * 🧩 Types
+ * ────────────────────────────────
+ */
 export interface UserProfile {
   id: string;
   email: string;
@@ -12,24 +17,29 @@ export interface UserProfile {
 
 interface AuthState {
   user: UserProfile | null;
-  session: any | null;
+  session: Record<string, any> | null;
   loading: boolean;
 
   // Actions
   setUser: (user: UserProfile | null) => void;
-  setSession: (session: any | null) => void;
+  setSession: (session: Record<string, any> | null) => void;
   clearUser: () => void;
   logout: (
-    navigate?: (url: string) => void,
-    i18n?: any,
+    navigate?: (url: string, opts?: Record<string, any>) => void,
+    i18n?: { language: string },
     role?: string | null
   ) => Promise<void>;
   restoreSession: () => Promise<void>;
 }
 
+/**
+ * ────────────────────────────────
+ * 🔐 Zustand Auth Store (Persistent)
+ * ────────────────────────────────
+ */
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       session: null,
       loading: false,
@@ -38,15 +48,19 @@ export const useAuthStore = create<AuthState>()(
       setSession: (session) => set({ session }),
       clearUser: () => set({ user: null, session: null }),
 
+      /**
+       * ✅ Logout user safely
+       * Clears both Zustand + Supabase sessions
+       */
       logout: async (navigate, i18n, role) => {
         try {
-          // ✅ Clear local state immediately to avoid flicker
+          // Immediately clear local state to prevent stale data flicker
           set({ user: null, session: null });
 
-          // ✅ Perform Supabase logout (server-side session clear)
+          // Server-side logout
           await supabase.auth.signOut();
 
-          // ✅ Optional: redirect cleanly if context provided
+          // Optional redirect after logout
           if (navigate && i18n) {
             const lang = i18n.language || "en";
             navigate(
@@ -55,26 +69,25 @@ export const useAuthStore = create<AuthState>()(
             );
           }
         } catch (error) {
-          console.error("Logout failed:", error);
+          console.error("🚨 Logout failed:", error);
         }
       },
 
+      /**
+       * ✅ Restore Supabase session on app reload
+       */
       restoreSession: async () => {
         try {
           set({ loading: true });
+
           const { data, error } = await supabase.auth.getSession();
+          if (error) throw error;
 
-          if (error) {
-            console.error("Session restore failed:", error.message);
-            set({ loading: false });
-            return;
-          }
-
-          const session = data?.session || null;
+          const session = data?.session ?? null;
           const user = session?.user
             ? {
                 id: session.user.id,
-                email: session.user.email!,
+                email: session.user.email ?? "",
                 role: session.user.user_metadata?.role,
                 full_name: session.user.user_metadata?.full_name,
               }
@@ -82,8 +95,8 @@ export const useAuthStore = create<AuthState>()(
 
           set({ session, user, loading: false });
         } catch (err) {
-          console.error("Unexpected restoreSession error:", err);
-          set({ loading: false });
+          console.error("🚨 restoreSession error:", err);
+          set({ loading: false, session: null, user: null });
         }
       },
     }),

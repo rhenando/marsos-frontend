@@ -15,23 +15,26 @@ const STEP_KEYS = [
 
 const PHONE_CODES = ["+966", "+971", "+973", "+965", "+968", "+974", "+63"];
 
+type CalendarType = "hijri" | "gregorian";
+type LocaleType = "en" | "ar";
+
 export default function SupplierOnboarding() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const locale = i18n.language;
+  const locale = (i18n.language as LocaleType) || "en";
   const isRtl = locale === "ar";
 
   // --- UI States ---
-  const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
-  const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
+  const [emailErrors] = useState<Record<string, string>>({});
 
   // --- Form State ---
   const [form, setForm] = useState({
     nun: "",
-    dateType: "hijri",
+    dateType: "hijri" as CalendarType,
     issueDate: "",
     companyName: "",
     companyEmail: "",
@@ -95,7 +98,7 @@ export default function SupplierOnboarding() {
   const sanitize = (s: string) => s.trim();
   const onlyDigits = (s: string) => s.replace(/\D/g, "");
 
-  const getClientIP = async () => {
+  const getClientIP = async (): Promise<string> => {
     try {
       const res = await fetch("http://localhost:5001/api/get-client-ip");
       const data = await res.json();
@@ -213,7 +216,7 @@ export default function SupplierOnboarding() {
       "vatFile",
     ];
 
-    if (requiredFields.some((f) => !form[f as keyof typeof form])) {
+    if (requiredFields.some((f) => !(form as any)[f])) {
       return toast.error(t("supplier.errors.completeAllFields"));
     }
 
@@ -244,8 +247,10 @@ export default function SupplierOnboarding() {
       }
 
       const clientIP = await getClientIP();
-      const crUrl = await uploadToStorage(form.crFile!, "cr");
-      const vatUrl = await uploadToStorage(form.vatFile!, "vat");
+      const crUrl = form.crFile ? await uploadToStorage(form.crFile, "cr") : "";
+      const vatUrl = form.vatFile
+        ? await uploadToStorage(form.vatFile, "vat")
+        : "";
 
       if (!crUrl || !vatUrl)
         throw new Error(

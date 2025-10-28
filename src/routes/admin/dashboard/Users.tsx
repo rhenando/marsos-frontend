@@ -36,7 +36,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-export default function Users(): JSX.Element {
+export default function Users() {
   const [users, setUsers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,8 +59,16 @@ export default function Users(): JSX.Element {
     (async () => {
       setLoading(true);
       try {
-        const data = await api.admin.listUsers();
-        setUsers(Array.isArray(data) ? data : data.data || []);
+        const response = (await api.admin.listUsers()) as unknown;
+
+        // ✅ Safely handle unknown type and extract array
+        const result = Array.isArray(response)
+          ? response
+          : (response as any)?.data && Array.isArray((response as any).data)
+          ? (response as any).data
+          : [];
+
+        setUsers(result);
       } catch (err) {
         console.error("Failed to fetch users:", err);
         setUsers([]);

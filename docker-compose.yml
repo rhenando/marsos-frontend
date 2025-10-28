@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+      - JWT_SECRET=${JWT_SECRET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - ADMIN_INTERNAL_TOKEN=${ADMIN_INTERNAL_TOKEN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    volumes:
+      - ./:/usr/src/app:delegated
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:5001/healthz"]
+      interval: 30s

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback, ChangeEvent } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import type { ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Command,

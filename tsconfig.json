@@ -13,7 +13,7 @@
 
     /* ===== React / JSX Settings ===== */
     "jsx": "react-jsx",
-    "types": ["react", "react-dom"],
+    "types": ["react", "react-dom", "node"],
 
     /* ===== Strict Type Checking ===== */
     "strict": true,

@@ -1,3 +1,4 @@
+// src/routes/user/buyer/BuyerOnboarding.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -5,6 +6,9 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/data-display/card";
 import DateDropdownPicker from "@/components/global/DateDropdownPicker";
 import { v4 as uuidv4 } from "uuid";
+
+type CalendarType = "hijri" | "gregorian";
+type LocaleType = "en" | "ar";
 
 // ----- Constants -----
 const STEP_KEYS = [
@@ -18,7 +22,9 @@ const PHONE_CODES = ["+966", "+971", "+973", "+965", "+968", "+974", "+63"];
 export default function SecureBuyerOnboardingPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const locale = i18n.language;
+
+  // ✅ Narrow down locale to the two allowed types
+  const locale = (i18n.language as LocaleType) || "en";
   const isRtl = locale === "ar";
 
   // --- UI States ---
@@ -26,12 +32,13 @@ export default function SecureBuyerOnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
-  const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
+  // ❌ Unused setter removed
+  const [emailErrors] = useState<Record<string, string>>({});
 
   // --- Form State ---
   const [form, setForm] = useState({
     nun: "",
-    dateType: "hijri",
+    dateType: "hijri" as CalendarType,
     issueDate: "",
     fullName: "",
     personalEmail: "",
@@ -147,6 +154,9 @@ export default function SecureBuyerOnboardingPage() {
 
       if (field === "personalPhone" || field === "buyerMobile")
         return { ...prev, [field]: onlyDigits(value) };
+
+      if (field === "dateType")
+        return { ...prev, dateType: value as CalendarType };
 
       return { ...prev, [field]: value };
     });

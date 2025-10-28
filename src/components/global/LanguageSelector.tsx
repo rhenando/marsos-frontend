@@ -1,5 +1,5 @@
 // src/components/global/LanguageSelector.tsx
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";

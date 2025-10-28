@@ -13,6 +13,7 @@ interface ProductCardProps {
     mainImageUrl?: string;
     mainimageurl?: string;
     productName?: string | { en?: string; ar?: string };
+    price?: string; // ✅ Added for TrendingProducts integration
   };
 }
 
@@ -162,6 +163,13 @@ const ProductCardMinimal: React.FC<ProductCardProps> = ({ product }) => {
           {supplierName}
         </span>
       </div>
+
+      {/* ✅ Price (optional) */}
+      {product.price && (
+        <div className='text-sm sm:text-base font-bold text-[#2c6449] mb-2'>
+          {product.price}
+        </div>
+      )}
 
       <div className='flex-1' />
 

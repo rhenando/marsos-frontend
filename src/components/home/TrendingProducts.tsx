@@ -4,6 +4,10 @@ import { useTranslation } from "react-i18next";
 import ProductCard from "@/components/global/ProductCardMinimal";
 import { useUIStore } from "@/state/useUIStore";
 
+interface PriceRange {
+  price?: number;
+}
+
 interface Product {
   id: string;
   productname_en?: string;
@@ -11,7 +15,7 @@ interface Product {
   mainimageurl?: string;
   category_en?: string;
   category_ar?: string;
-  priceranges?: any;
+  priceranges?: PriceRange[];
   suppliername?: string;
   [key: string]: any;
 }
@@ -27,6 +31,7 @@ const TrendingProductsSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { setLoading } = useUIStore();
 
+  // ✅ Helper: Format numbers (e.g., prices)
   const formatNumber = useCallback(
     (number: number): string =>
       new Intl.NumberFormat(locale, {
@@ -36,6 +41,7 @@ const TrendingProductsSection: React.FC = () => {
     [locale]
   );
 
+  // ✅ Fetch products
   useEffect(() => {
     const fetchData = async (): Promise<void> => {
       try {
@@ -43,7 +49,6 @@ const TrendingProductsSection: React.FC = () => {
 
         const { data, error } = await supabase
           .from("products")
-          // ✅ Cast id::text to ensure it comes as string
           .select(
             "id::text, productname_en, productname_ar, mainimageurl, category_en, category_ar, priceranges, suppliername"
           )
@@ -71,25 +76,23 @@ const TrendingProductsSection: React.FC = () => {
     fetchData();
   }, [setLoading, t, i18n.language]);
 
+  // ✅ Generate trending subset
   const getTrendingProducts = useCallback((): Product[] => {
     const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 8);
   }, [allProducts]);
 
+  // ✅ Build proper image URL
   const buildImageUrl = (path?: string): string => {
     if (!path) return "/placeholder-product.png";
     if (path.startsWith("http")) return path;
     return `${SUPABASE_URL}/storage/v1/object/public/product-images/${path}`;
   };
 
-  // ✅ Defensive guard
+  // ✅ Defensive guards
   const validProducts = Array.isArray(allProducts) ? allProducts : [];
-
-  // ✅ Choose dataset safely
   const displayedProducts =
     activeTab === "trending" ? getTrendingProducts() : validProducts;
-
-  // ✅ Filter out invalid items (no id)
   const safeProducts = displayedProducts.filter(
     (p): p is Product => !!p && !!p.id
   );
@@ -98,7 +101,7 @@ const TrendingProductsSection: React.FC = () => {
     <section id='trending-products' className='bg-gray-50 py-10'>
       <div className='container mx-auto px-4'>
         <h2 className='text-2xl font-bold mb-10 text-[#2c6449] text-center'>
-          {t("trendingProductsSection.title")}
+          {t("trendingProductsSection.title") || "Trending Products"}
         </h2>
 
         {/* 🔹 Tabs */}
@@ -111,7 +114,7 @@ const TrendingProductsSection: React.FC = () => {
                 : "bg-white border border-gray-300 text-[#2c6449]"
             }`}
           >
-            {t("trendingProductsSection.trending")}
+            {t("trendingProductsSection.trending") || "Trending"}
           </button>
 
           <button
@@ -122,7 +125,7 @@ const TrendingProductsSection: React.FC = () => {
                 : "bg-white border border-gray-300 text-[#2c6449]"
             }`}
           >
-            {t("trendingProductsSection.allProducts")}
+            {t("trendingProductsSection.allProducts") || "All Products"}
           </button>
         </div>
 
@@ -141,18 +144,27 @@ const TrendingProductsSection: React.FC = () => {
             '
           >
             {safeProducts.length > 0 ? (
-              safeProducts.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={{
-                    id: p.id,
-                    productname_en: p.productname_en,
-                    productname_ar: p.productname_ar,
-                    suppliername: p.suppliername || "Unknown",
-                    mainimageurl: buildImageUrl(p.mainimageurl),
-                  }}
-                />
-              ))
+              safeProducts.map((p) => {
+                const price =
+                  p.priceranges?.[0]?.price &&
+                  !isNaN(Number(p.priceranges[0].price))
+                    ? `${formatNumber(Number(p.priceranges[0].price))} SAR`
+                    : t("trendingProductsSection.negotiable") || "Negotiable";
+
+                return (
+                  <ProductCard
+                    key={p.id}
+                    product={{
+                      id: p.id,
+                      productname_en: p.productname_en,
+                      productname_ar: p.productname_ar,
+                      suppliername: p.suppliername || "Unknown",
+                      mainimageurl: buildImageUrl(p.mainimageurl),
+                      price, // ✅ show formatted price
+                    }}
+                  />
+                );
+              })
             ) : (
               <div className='col-span-full text-center text-gray-400'>
                 {t("trendingProductsSection.noProductsFound") ||

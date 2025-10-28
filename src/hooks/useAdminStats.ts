@@ -16,7 +16,7 @@ export function useAdminStats() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await api.admin.getStats();
+        const data = (await api.admin.getStats()) as AdminStats; // ✅ Type assertion here
         setStats(data);
       } catch (err) {
         console.error("Failed to load stats:", err);

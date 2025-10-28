@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+// src/routes/user/UserChoices.tsx
+import { useState } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/data-display/card";
 import { Button } from "@/components/ui/base/button";
 import { useTranslation } from "react-i18next";
+
+type RoleType = "buyer" | "supplier";
 
 export default function UserChoices() {
   const { t, i18n } = useTranslation();
@@ -13,11 +16,11 @@ export default function UserChoices() {
   const countryCode = searchParams.get("countryCode") ?? "+966";
   const phone = searchParams.get("phone") ?? "";
   const fullPhone = `${countryCode}${phone}`;
-  const [loadingRole, setLoadingRole] = useState(null);
+  const [loadingRole, setLoadingRole] = useState<RoleType | null>(null);
 
   const isRtl = i18n.language === "ar";
 
-  const choose = (role) => {
+  const choose = (role: RoleType) => {
     setLoadingRole(role);
     setTimeout(() => {
       if (role === "supplier") {

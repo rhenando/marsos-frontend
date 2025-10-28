@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Instagram, Linkedin, Twitter, Facebook, Youtube } from "lucide-react";
 import LanguageSelector from "@/components/global/LanguageSelector";
@@ -28,7 +28,7 @@ interface PaymentLogo {
   alt: string;
 }
 
-export default function Footer(): JSX.Element {
+export default function Footer() {
   const location = useLocation();
 
   // ✅ Detect locale (default to English)
@@ -36,7 +36,7 @@ export default function Footer(): JSX.Element {
   const prefix = `/${locale}`;
 
   // ✅ Build image path per locale
-  const basePath = `/${locale}/images/payments`;
+  const basePath = `/${locale}/payments`;
 
   const paymentLogos: PaymentLogo[] = [
     { src: `${basePath}/visa.png`, alt: "Visa" },
@@ -158,7 +158,7 @@ export default function Footer(): JSX.Element {
         <div className='mt-10 flex flex-col md:flex-row justify-between items-center gap-y-6 border-t pt-6'>
           <div className='relative w-[180px] h-[64px]'>
             <img
-              src={`/${locale}/saudi_business_logo.svg`}
+              src={`/${locale}/payments/saudi_business_logo.svg`}
               alt='Saudi Business Center'
               className='object-contain w-[180px] h-[64px]'
             />

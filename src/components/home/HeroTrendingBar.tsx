@@ -17,7 +17,7 @@ interface HeroTrendingBarProps {
   categoriesText?: string;
   loading?: boolean;
   loadingText?: string;
-  locale?: string;
+  locale?: "en" | "ar";
 }
 
 // -------------------------------
@@ -28,7 +28,7 @@ const HeroTrendingBar: React.FC<HeroTrendingBarProps> = ({
   isRTL = false,
   categoriesText,
   loading = false,
-  loadingText = "Loading...", // kept for compatibility
+  loadingText = "Loading...", // ✅ safe default
   locale = "en",
 }) => {
   const dedupedCategories: Category[] = [];
@@ -66,6 +66,7 @@ const HeroTrendingBar: React.FC<HeroTrendingBarProps> = ({
           aria-busy='true'
           aria-live='polite'
         >
+          <div className='text-gray-500 text-sm mb-2'>{loadingText}</div>
           <div
             className={`flex ${isRTL ? "flex-row-reverse" : ""}
                         gap-6 md:gap-8

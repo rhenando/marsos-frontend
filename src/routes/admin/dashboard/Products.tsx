@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 
-export default function Products(): JSX.Element {
+export default function Products() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { i18n } = useTranslation();
@@ -14,10 +14,13 @@ export default function Products(): JSX.Element {
     (async () => {
       try {
         setLoading(true);
-        const data = await api.admin.listProducts();
-        setProducts(data || []);
+
+        // ✅ Fix — force the result to be treated as an array
+        const data = (await api.admin.listProducts()) as any[];
+        setProducts(Array.isArray(data) ? data : []); // ✅ this guarantees type safety
       } catch (err) {
         console.error("Error fetching products:", err);
+        setProducts([]); // ✅ always set array, never object
       } finally {
         setLoading(false);
       }
@@ -130,7 +133,7 @@ export default function Products(): JSX.Element {
                             : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {p.status}
+                        {p.status || "—"}
                       </span>
                     </td>
 

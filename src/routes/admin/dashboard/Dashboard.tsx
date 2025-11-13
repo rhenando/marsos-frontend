@@ -1,4 +1,3 @@
-// src/routes/admin/dashboard/Orders.tsx
 import { useEffect, useState } from "react";
 import AdminLayout from "@/routes/admin/dashboard/AdminLayout";
 import { api } from "@/lib/api";

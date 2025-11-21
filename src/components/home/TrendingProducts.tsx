@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+"use client";
+
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useTranslation } from "react-i18next";
 import ProductCard from "@/components/global/ProductCardMinimal";
 import { useUIStore } from "@/state/useUIStore";
-
-interface PriceRange {
-  price?: number;
-}
+import sarSymbol from "../../../public/images/payments/sar_symbol.svg";
 
 interface Product {
   id: string;
@@ -15,23 +14,32 @@ interface Product {
   mainimageurl?: string;
   category_en?: string;
   category_ar?: string;
-  priceranges?: PriceRange[];
+  priceranges?: any; // JSONB returned as string or array
   suppliername?: string;
   [key: string]: any;
 }
 
+interface NormalizedPriceRange {
+  price: number | null;
+  minQty: number | null;
+  maxQty: number | null;
+  locations?: any[];
+}
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const TrendingProductsSection: React.FC = () => {
+export default function TrendingProductsSection() {
   const { t, i18n } = useTranslation();
   const locale = (i18n.language as "en" | "ar") || "en";
 
+  const { setLoading } = useUIStore();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState<"trending" | "all">("trending");
   const [error, setError] = useState<string | null>(null);
-  const { setLoading } = useUIStore();
 
-  // ✅ Helper: Format numbers (e.g., prices)
+  /* ------------------------------------------------------------
+   * Price number formatting
+   * ------------------------------------------------------------ */
   const formatNumber = useCallback(
     (number: number): string =>
       new Intl.NumberFormat(locale, {
@@ -41,9 +49,11 @@ const TrendingProductsSection: React.FC = () => {
     [locale]
   );
 
-  // ✅ Fetch products
+  /* ------------------------------------------------------------
+   * Fetch products from Supabase
+   * ------------------------------------------------------------ */
   useEffect(() => {
-    const fetchData = async (): Promise<void> => {
+    async function fetchData() {
       try {
         setLoading(true);
 
@@ -61,41 +71,42 @@ const TrendingProductsSection: React.FC = () => {
         }
 
         setAllProducts(data || []);
-        setError(null);
-      } catch (err: any) {
+      } catch (err) {
         console.error("❌ Error loading products:", err);
-        setError(
-          t("trendingProductsSection.failedToLoadProducts") ||
-            "Failed to load products."
-        );
+        setError("Failed to load products.");
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchData();
-  }, [setLoading, t, i18n.language]);
+  }, [setLoading]);
 
-  // ✅ Generate trending subset
-  const getTrendingProducts = useCallback((): Product[] => {
+  /* ------------------------------------------------------------
+   * Trending subset (stable by useMemo)
+   * ------------------------------------------------------------ */
+  const trendingProducts = useMemo(() => {
     const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 8);
   }, [allProducts]);
 
-  // ✅ Build proper image URL
+  /* ------------------------------------------------------------
+   * Build product image URL
+   * ------------------------------------------------------------ */
   const buildImageUrl = (path?: string): string => {
     if (!path) return "/placeholder-product.png";
     if (path.startsWith("http")) return path;
+
     return `${SUPABASE_URL}/storage/v1/object/public/product-images/${path}`;
   };
 
-  // ✅ Defensive guards
-  const validProducts = Array.isArray(allProducts) ? allProducts : [];
-  const displayedProducts =
-    activeTab === "trending" ? getTrendingProducts() : validProducts;
-  const safeProducts = displayedProducts.filter(
-    (p): p is Product => !!p && !!p.id
-  );
+  /* ------------------------------------------------------------
+   * Decide which product list to render
+   * ------------------------------------------------------------ */
+  const productsToShow =
+    activeTab === "trending" ? trendingProducts : allProducts;
+
+  const safeProducts = productsToShow.filter((p) => !!p.id);
 
   return (
     <section id='trending-products' className='bg-gray-50 py-10'>
@@ -104,7 +115,7 @@ const TrendingProductsSection: React.FC = () => {
           {t("trendingProductsSection.title") || "Trending Products"}
         </h2>
 
-        {/* 🔹 Tabs */}
+        {/* TABS */}
         <div className='flex flex-wrap gap-3 mb-8 justify-center'>
           <button
             onClick={() => setActiveTab("trending")}
@@ -129,14 +140,13 @@ const TrendingProductsSection: React.FC = () => {
           </button>
         </div>
 
-        {/* 🔹 Product Grid / Error */}
+        {/* GRID */}
         {error ? (
           <div className='text-center text-red-600'>{error}</div>
         ) : (
           <div
             className='
-              grid
-              grid-cols-2
+              grid grid-cols-2
               sm:grid-cols-2
               md:grid-cols-3
               lg:grid-cols-4
@@ -145,11 +155,43 @@ const TrendingProductsSection: React.FC = () => {
           >
             {safeProducts.length > 0 ? (
               safeProducts.map((p) => {
-                const price =
-                  p.priceranges?.[0]?.price &&
-                  !isNaN(Number(p.priceranges[0].price))
-                    ? `${formatNumber(Number(p.priceranges[0].price))} SAR`
-                    : t("trendingProductsSection.negotiable") || "Negotiable";
+                /* ------------------------------------------------------------
+                 * Parse JSONB priceranges safely
+                 * Supabase returns either:
+                 * - an array
+                 * - a JSON string (stringified array)
+                 * ------------------------------------------------------------ */
+
+                let rawRanges: any[] = [];
+
+                if (Array.isArray(p.priceranges)) {
+                  rawRanges = p.priceranges;
+                } else {
+                  try {
+                    rawRanges = JSON.parse(p.priceranges || "[]");
+                  } catch {
+                    rawRanges = [];
+                  }
+                }
+
+                // 🔥 Normalize each range: strings → numbers
+                const priceRanges: NormalizedPriceRange[] = rawRanges.map(
+                  (r: any) => ({
+                    price:
+                      r.price !== undefined && r.price !== null
+                        ? Number(r.price)
+                        : null,
+                    minQty:
+                      r.minQty !== undefined && r.minQty !== null
+                        ? Number(r.minQty)
+                        : null,
+                    maxQty:
+                      r.maxQty !== undefined && r.maxQty !== null
+                        ? Number(r.maxQty)
+                        : null,
+                    locations: r.locations || [],
+                  })
+                );
 
                 return (
                   <ProductCard
@@ -160,7 +202,10 @@ const TrendingProductsSection: React.FC = () => {
                       productname_ar: p.productname_ar,
                       suppliername: p.suppliername || "Unknown",
                       mainimageurl: buildImageUrl(p.mainimageurl),
-                      price, // ✅ show formatted price
+                      // 🔥 Pass normalized ranges, formatter & SAR icon
+                      priceRanges,
+                      sarIcon: sarSymbol,
+                      formatNumber,
                     }}
                   />
                 );
@@ -176,6 +221,4 @@ const TrendingProductsSection: React.FC = () => {
       </div>
     </section>
   );
-};
-
-export default TrendingProductsSection;
+}
